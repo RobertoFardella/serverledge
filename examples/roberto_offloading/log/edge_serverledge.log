@@ -1,0 +1,12 @@
+2024/09/24 16:49:49 Registration key: registry/ROME/LAo8JS7C8tzQmxWofDfARX1727189389007083000
+2024/09/24 16:49:49 Configured policy: cloudonly
+2024/09/24 16:49:49 Current resources: [CPUs: 8.000000 - Mem: 1024]
+2024/09/24 16:49:49 Scheduler started.
+2024/09/24 16:49:49 UDP server up and listening on port 9876
+2024/09/24 16:49:49 found edge server at: http://10.220.116.128:1323
+2024/09/24 16:49:49 Nearby map at the end of monitoring: map[]
+⇨ http server started on [::]:1323
+2024/09/24 16:49:53 New request: creation of robertoFunc
+2024/09/24 16:50:09 Periodic nearby monitoring
+Got interrupt signal. Terminating...
+2024/09/24 16:50:18 Deregister : registry/ROME/LAo8JS7C8tzQmxWofDfARX1727189389007083000

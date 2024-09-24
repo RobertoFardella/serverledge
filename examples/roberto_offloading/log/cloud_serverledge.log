@@ -1,0 +1,11 @@
+2024/09/24 16:49:49 Registration key: registry/cloud/ROME/YD9SpdcjSiHmdG8toMhxec1727189388996211846
+2024/09/24 16:49:49 Configured policy: localonly
+⇨ http server started on [::]:1326
+2024/09/24 16:49:49 Current resources: [CPUs: 8.000000 - Mem: 2048]
+2024/09/24 16:49:49 Scheduler started.
+2024/09/24 16:49:53 Container 81ee083355dbbc94e65a808dcc1798085aea043785126936c0f937ba997fcf6f has name /brave_euler
+2024/09/24 16:49:54 Warning: Retrying POST to executor (attempts: 4): Post "http://172.17.0.3:8080/invoke": dial tcp 172.17.0.3:8080: connect: connection refused
+2024/09/24 16:49:54 Warning: Retrying POST to executor (attempts: 5): Post "http://172.17.0.3:8080/invoke": dial tcp 172.17.0.3:8080: connect: connection refused
+Got interrupt signal. Terminating...
+2024/09/24 16:50:14 Removing container with ID 81ee083355dbbc94e65a808dcc1798085aea043785126936c0f937ba997fcf6f
+2024/09/24 16:50:14 Deregister : registry/cloud/ROME/YD9SpdcjSiHmdG8toMhxec1727189388996211846
