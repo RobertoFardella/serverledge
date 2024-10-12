@@ -2,8 +2,10 @@ package scheduling
 
 import (
 	"fmt"
-	"github.com/grussorusso/serverledge/internal/function"
+	"log"
 	"time"
+
+	"github.com/grussorusso/serverledge/internal/function"
 
 	"github.com/grussorusso/serverledge/internal/container"
 	"github.com/grussorusso/serverledge/internal/executor"
@@ -13,7 +15,7 @@ const HANDLER_DIR = "/app"
 
 // Execute serves a request on the specified container.
 func Execute(contID container.ContainerID, r *scheduledRequest, isWarm bool) (function.ExecutionReport, error) {
-	//log.Printf("[%s] Executing on container: %v", r.Fun, contID)
+	log.Printf("[%s] Executing on container: %v", r.Fun, contID)
 
 	var req executor.InvocationRequest
 	if r.Fun.Runtime == container.CUSTOM_RUNTIME {

@@ -3,11 +3,12 @@ package scheduling
 import (
 	"errors"
 	"fmt"
-	"github.com/grussorusso/serverledge/internal/metrics"
 	"log"
 	"net/http"
 	"runtime"
 	"time"
+
+	"github.com/grussorusso/serverledge/internal/metrics"
 
 	"github.com/grussorusso/serverledge/internal/node"
 
@@ -51,7 +52,7 @@ func Run(p Policy) {
 	// initialize scheduling policy
 	p.Init()
 
-	remoteServerUrl = config.GetString(config.CLOUD_URL, "")
+	remoteServerUrl = config.GetString(config.CLOUD_URL, "") //this is unused!
 
 	log.Println("Scheduler started.")
 
@@ -62,7 +63,7 @@ func Run(p Policy) {
 		case r = <-requests:
 			go p.OnArrival(r)
 		case c = <-completions:
-			node.ReleaseContainer(c.contID, c.fun)
+			node.ReleaseResources(c.contID, c.fun)
 			p.OnCompletion(c.fun, c.executionReport)
 
 			if metrics.Enabled && c.executionReport != nil {
@@ -91,10 +92,10 @@ func SubmitRequest(r *function.Request) (function.ExecutionReport, error) {
 	//log.Printf("[%s] Scheduling decision: %v", r, schedDecision)
 
 	if schedDecision.action == DROP {
-		//log.Printf("[%s] Dropping request", r)
+		log.Printf("[%s] Dropping request", r)
 		return function.ExecutionReport{}, node.OutOfResourcesErr
 	} else if schedDecision.action == EXEC_REMOTE {
-		//log.Printf("Offloading request")
+		log.Printf("Offloading request")
 		return Offload(r, schedDecision.remoteHost)
 	} else {
 		return Execute(schedDecision.contID, &schedRequest, schedDecision.useWarm)
@@ -119,7 +120,7 @@ func SubmitAsyncRequest(r *function.Request) {
 	if schedDecision.action == DROP {
 		publishAsyncResponse(r.ReqId, function.Response{Success: false})
 	} else if schedDecision.action == EXEC_REMOTE {
-		//log.Printf("Offloading request")
+		log.Printf("Offloading request")
 		err = OffloadAsync(r, schedDecision.remoteHost)
 		if err != nil {
 			publishAsyncResponse(r.ReqId, function.Response{Success: false})

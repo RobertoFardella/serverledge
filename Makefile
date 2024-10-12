@@ -1,9 +1,9 @@
 BIN=bin
 
-all: serverledge executor serverledge-cli lb
+all: serverledge executor serverledge-cli lb 
 
 serverledge:
-	CGO_ENABLED=0 GOOS=linux go build -o $(BIN)/$@ cmd/$@/main.go
+	CGO_ENABLED=0 GOOS=linux go build -o $(BIN)/$@ cmd/$@/main.go 
 
 lb:
 	CGO_ENABLED=0 GOOS=linux go build -o $(BIN)/$@ cmd/$@/main.go
@@ -28,9 +28,24 @@ push-images:
 	docker push $(DOCKERHUB_USER)/serverledge-base
 	docker push $(DOCKERHUB_USER)/serverledge-nodejs17ng
 
+etcd_start:
+	./scripts/start-etcd.sh
+
+etcd_stop:
+	./scripts/stop-etcd.sh
+
+node_start:
+	./bin/serverledge
+
 test:
 	go test -v ./...
 
 .PHONY: serverledge serverledge-cli lb executor test images
 
 	
+#.PHONY: serverledge serverledge-cli lb executor test images
+#Descrizione: Specifica che i target elencati non corrispondono a file reali nel filesystem. Questo garantisce che le regole associate vengano eseguite ogni volta che vengono invocate.
+
+#$@ indichiamo il target corrente
+
+#Descrizione:con il target test Esegue tutti i test Go presenti nel progetto in modalità verbosa.

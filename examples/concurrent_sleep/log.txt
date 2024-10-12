@@ -1,0 +1,9 @@
+panic: Failed to release container
+
+goroutine 48 [running]:
+github.com/grussorusso/serverledge/internal/node.ReleaseResources({0xc0000427c0, 0x40}, 0xc000270000)
+	/home/roberto/Documenti/GitHub/serverledge/internal/node/pool.go:181 +0x385
+github.com/grussorusso/serverledge/internal/scheduling.Run({0xe84dc0, 0xc00011ed70})
+	/home/roberto/Documenti/GitHub/serverledge/internal/scheduling/scheduler.go:66 +0x2f5
+created by main.main
+	/home/roberto/Documenti/GitHub/serverledge/cmd/serverledge/main.go:138 +0x2f5

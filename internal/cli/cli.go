@@ -210,6 +210,7 @@ func create(cmd *cobra.Command, args []string) {
 		CPUDemand:       cpuDemand,
 		TarFunctionCode: encoded,
 		CustomImage:     customImage,
+		Instances:       1,
 	}
 	requestBody, err := json.Marshal(request)
 	if err != nil {

@@ -20,6 +20,7 @@ type Function struct {
 	Handler         string  // example: "module.function_name"
 	TarFunctionCode string  // input is .tar
 	CustomImage     string  // used if custom runtime is chosen
+	Instances       int64   //Number of instances for the given function
 }
 
 func (f *Function) getEtcdKey() string {

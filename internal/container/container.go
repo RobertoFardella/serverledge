@@ -48,11 +48,14 @@ func Execute(contID ContainerID, req *executor.InvocationRequest) (*executor.Inv
 
 	postBody, _ := json.Marshal(req)
 	postBodyB := bytes.NewBuffer(postBody)
+
+	//func sendPostRequestWithRetries(url string, body *bytes.Buffer) (*http.Response, time.Duration, error)
 	resp, waitDuration, err := sendPostRequestWithRetries(fmt.Sprintf("http://%s:%d/invoke", ipAddr,
 		executor.DEFAULT_EXECUTOR_PORT), postBodyB)
-	if err != nil || resp == nil {
+	if err != nil || resp == nil { //se la risposta http ritorna un errore o è nil, allora la richiesta all'executor fallisce
 		return nil, waitDuration, fmt.Errorf("Request to executor failed: %v", err)
 	}
+
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {

@@ -15,6 +15,7 @@ type Request struct {
 	CanDoOffloading bool
 	Async           bool
 	ReturnOutput    bool
+	//istance_number int64 potrebbe essere la variabile della struct che contiene il numero di istanze
 }
 
 type RequestQoS struct {

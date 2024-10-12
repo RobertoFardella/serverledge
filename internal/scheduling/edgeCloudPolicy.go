@@ -15,10 +15,10 @@ func (p *CloudEdgePolicy) OnCompletion(_ *function.Function, _ *function.Executi
 
 }
 
-func (p *CloudEdgePolicy) OnArrival(r *scheduledRequest) {
-	containerID, err := node.AcquireWarmContainer(r.Fun)
+func (p *CloudEdgePolicy) OnArrival(r *scheduledRequest) { //TODO: qui va aggiunta la nuova logica
+	containerID, err := node.AcquireRunningContainer(r.Fun)
 	if err == nil {
-		execLocally(r, containerID, true)
+		execLocally(r, containerID, false)
 	} else if handleColdStart(r) {
 		return
 	} else if r.CanDoOffloading {
