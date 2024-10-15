@@ -11,7 +11,7 @@ var OutOfResourcesErr = errors.New("not enough resources for function execution"
 var NodeIdentifier string
 
 const (
-	MaxFunctionInstances int64 = 3
+	MaxFunctionInstances int64 = 5
 )
 
 type NodeResources struct {

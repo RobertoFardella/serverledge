@@ -10,8 +10,10 @@ runtime image of Serverledge.
 
 	$ docker build -t <IMAGETAG> .
 
-## Using the image
+## Using the image to create a function that you want
 
-	$ serverledge-cli create -f sleepFunc --memory 256 --runtime custom\
-	    --custom_image <IMAGETAG>
-	$ serverledge-cli invoke -f sleepFunc
+	$ ./create_function.sh <func_name> <IMAGETAG>
+	
+## Then, you can invoke a given number of function instances by passing it as a command-line argument.
+	
+	$ ./parallel_invocation_control.sh <function_name> <num_instances>
