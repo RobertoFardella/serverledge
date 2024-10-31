@@ -20,9 +20,7 @@ import (
 
 var requests chan *scheduledRequest
 var completions chan *completionNotification
-
 var remoteServerUrl string
-
 var offloadingClient *http.Client
 
 func Run(p Policy) {
@@ -63,7 +61,7 @@ func Run(p Policy) {
 		case r = <-requests:
 			go p.OnArrival(r)
 		case c = <-completions:
-			node.ReleaseResources(c.contID, c.fun)
+			node.ReleaseResources(c.contID, r.Istance_number, c.fun)
 			p.OnCompletion(c.fun, c.executionReport)
 
 			if metrics.Enabled && c.executionReport != nil {
@@ -82,6 +80,7 @@ func SubmitRequest(r *function.Request) (function.ExecutionReport, error) {
 	schedRequest := scheduledRequest{
 		Request:         r,
 		decisionChannel: make(chan schedDecision, 1)}
+
 	requests <- &schedRequest
 
 	// wait on channel for scheduling action
@@ -135,7 +134,7 @@ func SubmitAsyncRequest(r *function.Request) {
 }
 
 func handleColdStart(r *scheduledRequest) (isSuccess bool) {
-	newContainer, err := node.NewContainer(r.Fun)
+	newContainer, err := node.NewContainer(r.Fun, r.Istance_number)
 	if errors.Is(err, node.OutOfResourcesErr) {
 		return false
 	} else if err != nil {
@@ -152,7 +151,7 @@ func dropRequest(r *scheduledRequest) {
 }
 
 func execLocally(r *scheduledRequest, c container.ContainerID, warmStart bool) {
-	decision := schedDecision{action: EXEC_LOCAL, contID: c, useWarm: warmStart}
+	decision := schedDecision{action: EXEC_LOCAL, contID: c, useWarm: warmStart, istances: r.Istance_number}
 	r.decisionChannel <- decision
 }
 
@@ -168,4 +167,28 @@ func handleOffload(r *scheduledRequest, serverHost string) {
 func handleCloudOffload(r *scheduledRequest) {
 	cloudAddress := config.GetString(config.CLOUD_URL, "")
 	handleOffload(r, cloudAddress)
+}
+
+func handleUnavailableRunningContainer(r *scheduledRequest) (isSuccess bool) {
+
+	log.Printf("attempt to acquire warm container after there are no running container\n")
+
+	// If there are no running containers executing functions, take one from the warm pool (if any)
+	containerID, err := node.AcquireWarmContainer(r.Fun, r.Istance_number, r.Fun.MaxFunctionInstances)
+	if err == nil {
+		execLocally(r, containerID, true)
+		return true
+	}
+
+	if errors.Is(err, node.OutOfResourcesErr) {
+		log.Printf("not enough resources for function execution into a warm container, the request will be enqueue if possible\n")
+		return false
+	}
+
+	if errors.Is(err, node.NoWarmFoundErr) {
+		return handleColdStart(r)
+	}
+
+	// other error
+	return false
 }

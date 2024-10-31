@@ -15,7 +15,7 @@ type Request struct {
 	CanDoOffloading bool
 	Async           bool
 	ReturnOutput    bool
-	//istance_number int64 potrebbe essere la variabile della struct che contiene il numero di istanze
+	Istance_number  int64
 }
 
 type RequestQoS struct {
@@ -24,14 +24,14 @@ type RequestQoS struct {
 }
 
 type ExecutionReport struct {
-	Result         string
+	Result         []string
 	ResponseTime   float64
 	IsWarmStart    bool
 	InitTime       float64
 	OffloadLatency float64
 	Duration       float64
 	SchedAction    string
-	Output         string
+	Output         []string
 }
 
 type Response struct {

@@ -54,10 +54,16 @@ func InvokeFunction(c echo.Context) error {
 		return fmt.Errorf("could not parse request: %v", err)
 	}
 
+	if invocationRequest.Istances > fun.MaxFunctionInstances {
+		log.Printf("The number of instances for [%s] exceeds the maximum limit of processable function instances.\n", funcName)
+		return fmt.Errorf("the number of instances for [%s] exceeds the maximum limit of processable function instances", funcName)
+	}
+
 	r := requestsPool.Get().(*function.Request)
 	defer requestsPool.Put(r)
 	r.Fun = fun
 	r.Params = invocationRequest.Params
+	r.Istance_number = invocationRequest.Istances
 	r.Arrival = time.Now()
 	r.Class = function.ServiceClass(invocationRequest.QoSClass)
 	r.MaxRespT = invocationRequest.QoSMaxRespT
@@ -143,7 +149,11 @@ func CreateFunction(c echo.Context) error {
 		log.Printf("Failed creation: %v\n", err)
 		return c.JSON(http.StatusServiceUnavailable, "")
 	}
-	response := struct{ Created string }{f.Name}
+	response := struct {
+		Created       string
+		InstanceLimit int64
+	}{f.Name, f.MaxFunctionInstances}
+
 	return c.JSON(http.StatusOK, response)
 }
 

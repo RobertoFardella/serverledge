@@ -13,14 +13,15 @@ import (
 
 // Function describes a serverless function.
 type Function struct {
-	Name            string
-	Runtime         string  // example: python310
-	MemoryMB        int64   // MB
-	CPUDemand       float64 // 1.0 -> 1 core
-	Handler         string  // example: "module.function_name"
-	TarFunctionCode string  // input is .tar
-	CustomImage     string  // used if custom runtime is chosen
-	Instances       int64   //Number of instances for the given function
+	Name                 string
+	Runtime              string  // example: python310
+	MaxFunctionInstances int64   //Upper limit for the number of instances
+	MemoryMB             int64   // MB
+	CPUDemand            float64 // 1.0 -> 1 core
+	Handler              string  // example: "module.function_name"
+	TarFunctionCode      string  // input is .tar
+	CustomImage          string  // used if custom runtime is chosen
+
 }
 
 func (f *Function) getEtcdKey() string {
