@@ -34,6 +34,9 @@ etcd_start:
 etcd_stop:
 	./scripts/stop-etcd.sh
 
+etcd_restart:
+	./scripts/stop-etcd.sh
+	./scripts/start-etcd.sh
 node_start:
 	./bin/serverledge
 

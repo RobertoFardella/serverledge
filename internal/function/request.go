@@ -25,7 +25,7 @@ type RequestQoS struct {
 
 type ExecutionReport struct {
 	Result         []string
-	ResponseTime   float64
+	ResponseTime   []float64
 	IsWarmStart    bool
 	InitTime       float64
 	OffloadLatency float64

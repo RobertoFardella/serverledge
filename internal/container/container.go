@@ -86,7 +86,6 @@ func sendPostRequestWithRetries(url string, body *bytes.Buffer) (*http.Response,
 	var backoffMillis = 25
 	var totalWaitMillis = 0
 	var attempts = 1
-
 	var err error
 
 	for totalWaitMillis < TIMEOUT_MILLIS {

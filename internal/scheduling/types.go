@@ -25,7 +25,6 @@ type schedDecision struct {
 	contID     container.ContainerID
 	remoteHost string
 	useWarm    bool
-	istances   int64
 }
 
 type action int64

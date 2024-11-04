@@ -151,7 +151,7 @@ func dropRequest(r *scheduledRequest) {
 }
 
 func execLocally(r *scheduledRequest, c container.ContainerID, warmStart bool) {
-	decision := schedDecision{action: EXEC_LOCAL, contID: c, useWarm: warmStart, istances: r.Istance_number}
+	decision := schedDecision{action: EXEC_LOCAL, contID: c, useWarm: warmStart}
 	r.decisionChannel <- decision
 }
 

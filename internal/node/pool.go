@@ -173,7 +173,6 @@ func ReleaseResources(containerID container.ContainerID, instances int64, f *fun
 			container.FuncCounter -= instances
 			if container.FuncCounter <= 0 {
 				fp.running.Remove(elem)
-				// Aggiungi il container al pool "warm" con il tempo di espirazione
 				fp.putwarmContainer(containerID, expTime)
 				break // Esci dal loop poiché il container è stato rimosso e rilasciato
 			}

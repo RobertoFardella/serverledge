@@ -74,7 +74,9 @@ func Offload(r *function.Request, serverUrl string) (function.ExecutionReport, e
 	now := time.Now()
 
 	execReport := &response.ExecutionReport
-	execReport.ResponseTime = now.Sub(r.Arrival).Seconds()
+	for i := 0; i < int(r.Istance_number); i++ {
+		execReport.ResponseTime = append(execReport.ResponseTime, now.Sub(r.Arrival).Seconds())
+	}
 
 	// TODO: check how this is used in the QoSAware policy
 	// It was originially computed as "report.Arrival - sendingTime"

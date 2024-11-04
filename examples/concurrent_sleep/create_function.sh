@@ -12,3 +12,4 @@ fi
 ./../../bin/serverledge-cli create -f "$1" --memory 256 --runtime custom --custom_image "$2" --max_istances "$3"
 
 
+
