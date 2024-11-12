@@ -38,7 +38,7 @@ func (p *DefaultLocalPolicy) OnCompletion(_ *function.Function, _ *function.Exec
 
 	req := p.queue.Front()
 
-	containerID, err := node.AcquireRunningContainer(req.Fun, req.Istance_number)
+	containerID, err := node.AcquireRunningContainer(req.Fun)
 	if err == nil {
 		p.queue.Dequeue()
 		log.Printf("[%s] running container start from the queue (length=%d)\n", req, p.queue.Len())
@@ -51,13 +51,13 @@ func (p *DefaultLocalPolicy) OnCompletion(_ *function.Function, _ *function.Exec
 		if node.AcquireResources(req.Fun.CPUDemand, req.Fun.MemoryMB, true) {
 			log.Printf("[%s] warm start from the queue (length=%d)\n", req, p.queue.Len())
 			p.queue.Dequeue()
-			warmContainer, err := node.WarmContainerWithAcquiredResources(req.Fun, req.Istance_number)
+			warmContainer, err := node.WarmContainerWithAcquiredResources(req.Fun)
 			if err != nil {
 				// This avoids blocking the thread during the cold
 				// start, but also allows us to check for resource
 				// availability before dequeueing
 				go func() {
-					newContainer, err := node.NewContainerWithAcquiredResources(req.Fun, req.Istance_number)
+					newContainer, err := node.NewContainerWithAcquiredResources(req.Fun)
 					if err != nil {
 						dropRequest(req)
 					} else {
@@ -83,7 +83,7 @@ func (p *DefaultLocalPolicy) OnCompletion(_ *function.Function, _ *function.Exec
 
 func (p *DefaultLocalPolicy) OnArrival(r *scheduledRequest) {
 
-	containerID, err := node.AcquireRunningContainer(r.Fun, r.Istance_number)
+	containerID, err := node.AcquireRunningContainer(r.Fun)
 	if err == nil {
 		execLocally(r, containerID, false)
 		return

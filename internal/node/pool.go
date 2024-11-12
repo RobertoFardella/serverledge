@@ -42,7 +42,7 @@ func getFunctionPool(f *function.Function) *ContainerPool {
 	return fp
 }
 
-func (fp *ContainerPool) getRunningContainer(maxIstances int64, istances int64) (container.ContainerID, bool) {
+func (fp *ContainerPool) getRunningContainer(maxIstances int64) (container.ContainerID, bool) {
 
 	elem := fp.running.Front()
 	if elem == nil {
@@ -51,7 +51,7 @@ func (fp *ContainerPool) getRunningContainer(maxIstances int64, istances int64) 
 
 	for elem != nil {
 		containerElem := elem.Value.(*containerRunning)
-		countIstances := containerElem.FuncCounter + istances
+		countIstances := containerElem.FuncCounter + 1
 		if countIstances <= maxIstances {
 			containerElem.FuncCounter = countIstances
 			log.Printf("Container %s has been used, function instances: %d.\n", containerElem.contID, containerElem.FuncCounter)
@@ -65,10 +65,10 @@ func (fp *ContainerPool) getRunningContainer(maxIstances int64, istances int64) 
 	return "", false
 }
 
-func (fp *ContainerPool) putRunningContainer(contID container.ContainerID, istances int64) {
+func (fp *ContainerPool) putRunningContainer(contID container.ContainerID) {
 	fp.running.PushBack(&containerRunning{
 		contID:      contID,
-		FuncCounter: istances,
+		FuncCounter: 1,
 	})
 }
 
@@ -129,13 +129,13 @@ func releaseResources(cpuDemand float64, memDemand int64) {
 // The function returns an error if either:
 // (i) the container does not exist
 // (ii) there are not enough resources to use the container busy with some function
-func AcquireRunningContainer(f *function.Function, istance_number int64) (container.ContainerID, error) {
+func AcquireRunningContainer(f *function.Function) (container.ContainerID, error) {
 	Resources.Lock()
 	defer Resources.Unlock()
 
 	fp := getFunctionPool(f)
 
-	contID, found := fp.getRunningContainer(f.MaxFunctionInstances, istance_number)
+	contID, found := fp.getRunningContainer(f.MaxFunctionInstances)
 	//check running container, if any
 	if !found {
 		log.Printf("no running container is available for %s", f)
@@ -153,7 +153,7 @@ func AcquireRunningContainer(f *function.Function, istance_number int64) (contai
 
 // ReleaseResources puts a container in the warm pool for a function if the counter of istance is zero.
 // ReleaseResources puts a container in the warm pool for a function if the counter of instances is zero.
-func ReleaseResources(containerID container.ContainerID, instances int64, f *function.Function) {
+func ReleaseResources(containerID container.ContainerID, f *function.Function) {
 	// Imposta l'expiration time come durata da ora
 	d := time.Duration(config.GetInt(config.CONTAINER_EXPIRATION_TIME, 600)) * time.Second
 	expTime := time.Now().Add(d).UnixNano()
@@ -170,7 +170,7 @@ func ReleaseResources(containerID container.ContainerID, instances int64, f *fun
 		nextElem := elem.Next() // Memorizza il prossimo elemento prima di una possibile rimozione
 
 		if container.contID == containerID {
-			container.FuncCounter -= instances
+			container.FuncCounter--
 			if container.FuncCounter <= 0 {
 				fp.running.Remove(elem)
 				fp.putwarmContainer(containerID, expTime)
@@ -186,7 +186,7 @@ func ReleaseResources(containerID container.ContainerID, instances int64, f *fun
 
 // NewContainer creates and starts a new container for the given function.
 // The container can be directly used to schedule a request.
-func NewContainer(fun *function.Function, istances int64) (container.ContainerID, error) {
+func NewContainer(fun *function.Function) (container.ContainerID, error) {
 	Resources.Lock()
 	if !acquireResources(fun.CPUDemand, fun.MemoryMB, true) {
 		log.Printf("Not enough resources for the new container.")
@@ -197,7 +197,7 @@ func NewContainer(fun *function.Function, istances int64) (container.ContainerID
 	//log.Printf("Acquired resources for new container. Now: %v", Resources)
 	Resources.Unlock()
 
-	return NewContainerWithAcquiredResources(fun, istances)
+	return NewContainerWithAcquiredResources(fun)
 }
 
 func getImageForFunction(fun *function.Function) (string, error) {
@@ -215,15 +215,15 @@ func getImageForFunction(fun *function.Function) (string, error) {
 	return image, nil
 }
 
-func (fp *ContainerPool) getWarmContainer(istances int64, maxIstances int64) (container.ContainerID, bool) {
+func (fp *ContainerPool) getWarmContainer(maxIstances int64) (container.ContainerID, bool) {
 	// TODO: picking most-recent / least-recent container might be better?
 	elem := fp.warm.Front()
-	if elem == nil || istances > maxIstances {
+	if elem == nil {
 		return "", false
 	}
 
 	wc := fp.warm.Remove(elem).(*warmContainer)
-	fp.putRunningContainer(wc.contID, istances)
+	fp.putRunningContainer(wc.contID)
 
 	return wc.contID, true
 }
@@ -235,12 +235,12 @@ func (fp *ContainerPool) getWarmContainer(istances int64, maxIstances int64) (co
 // The function returns an error if either:
 // (i) the warm container does not exist
 // (ii) there are not enough resources to start the container
-func AcquireWarmContainer(f *function.Function, istances int64, maxIstances int64) (container.ContainerID, error) {
+func AcquireWarmContainer(f *function.Function, maxIstances int64) (container.ContainerID, error) {
 	Resources.Lock()
 	defer Resources.Unlock()
 
 	fp := getFunctionPool(f)
-	contID, found := fp.getWarmContainer(istances, maxIstances)
+	contID, found := fp.getWarmContainer(maxIstances)
 	if !found {
 		return "", NoWarmFoundErr
 	}
@@ -255,10 +255,10 @@ func AcquireWarmContainer(f *function.Function, istances int64, maxIstances int6
 }
 
 /* A warm container is acquired assuming that the resources have already been obtained. */
-func WarmContainerWithAcquiredResources(f *function.Function, istances int64) (container.ContainerID, error) {
+func WarmContainerWithAcquiredResources(f *function.Function) (container.ContainerID, error) {
 	fp := getFunctionPool(f)
 
-	contID, found := fp.getWarmContainer(istances, f.MaxFunctionInstances)
+	contID, found := fp.getWarmContainer(f.MaxFunctionInstances)
 	if !found {
 		return "", NoWarmFoundErr
 	}
@@ -270,7 +270,7 @@ func WarmContainerWithAcquiredResources(f *function.Function, istances int64) (c
 // NewContainerWithAcquiredResources spawns a new container for the given
 // function, assuming that the required CPU and memory resources have been
 // alwarm been acquired.
-func NewContainerWithAcquiredResources(fun *function.Function, istances int64) (container.ContainerID, error) {
+func NewContainerWithAcquiredResources(fun *function.Function) (container.ContainerID, error) {
 	image, err := getImageForFunction(fun)
 	if err != nil {
 		return "", err
@@ -290,7 +290,7 @@ func NewContainerWithAcquiredResources(fun *function.Function, istances int64) (
 	}
 
 	fp := getFunctionPool(fun)
-	fp.putRunningContainer(contID, istances)
+	fp.putRunningContainer(contID)
 
 	return contID, nil
 }
@@ -490,7 +490,7 @@ func PrewarmInstances(f *function.Function, count int64, forcePull bool) (int64,
 
 	var spawned int64 = 0
 	for spawned < count {
-		_, err = NewContainer(f, 1)
+		_, err = NewContainer(f)
 		if err != nil {
 			log.Printf("Prespawning failed: %v\n", err)
 			return spawned, err

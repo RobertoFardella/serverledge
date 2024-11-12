@@ -16,7 +16,7 @@ func (p *CloudEdgePolicy) OnCompletion(_ *function.Function, _ *function.Executi
 }
 
 func (p *CloudEdgePolicy) OnArrival(r *scheduledRequest) { //TODO: qui va aggiunta la nuova logica
-	containerID, err := node.AcquireRunningContainer(r.Fun, r.Istance_number)
+	containerID, err := node.AcquireRunningContainer(r.Fun)
 	if err == nil {
 		execLocally(r, containerID, false)
 	} else if handleColdStart(r) {

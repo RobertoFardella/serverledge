@@ -61,7 +61,7 @@ func Run(p Policy) {
 		case r = <-requests:
 			go p.OnArrival(r)
 		case c = <-completions:
-			node.ReleaseResources(c.contID, r.Istance_number, c.fun)
+			node.ReleaseResources(c.contID, c.fun)
 			p.OnCompletion(c.fun, c.executionReport)
 
 			if metrics.Enabled && c.executionReport != nil {
@@ -134,7 +134,7 @@ func SubmitAsyncRequest(r *function.Request) {
 }
 
 func handleColdStart(r *scheduledRequest) (isSuccess bool) {
-	newContainer, err := node.NewContainer(r.Fun, r.Istance_number)
+	newContainer, err := node.NewContainer(r.Fun)
 	if errors.Is(err, node.OutOfResourcesErr) {
 		return false
 	} else if err != nil {
@@ -174,7 +174,7 @@ func handleUnavailableRunningContainer(r *scheduledRequest) (isSuccess bool) {
 	log.Printf("attempt to acquire warm container after there are no running container\n")
 
 	// If there are no running containers executing functions, take one from the warm pool (if any)
-	containerID, err := node.AcquireWarmContainer(r.Fun, r.Istance_number, r.Fun.MaxFunctionInstances)
+	containerID, err := node.AcquireWarmContainer(r.Fun, r.Fun.MaxFunctionInstances)
 	if err == nil {
 		execLocally(r, containerID, true)
 		return true

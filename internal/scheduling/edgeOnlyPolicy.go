@@ -26,7 +26,7 @@ func (p *EdgePolicy) OnArrival(r *scheduledRequest) {
 			return
 		}
 	} else {
-		containerID, err := node.AcquireRunningContainer(r.Fun, r.Istance_number)
+		containerID, err := node.AcquireRunningContainer(r.Fun)
 		if err == nil {
 			log.Printf("Using a warm container for: %v\n", r)
 			execLocally(r, containerID, true)

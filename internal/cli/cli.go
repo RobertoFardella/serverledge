@@ -63,7 +63,7 @@ var statusCmd = &cobra.Command{
 
 var funcName, runtime, handler, customImage, src, qosClass string
 var requestId string
-var memory, istances, maxFunctionInstances int64
+var memory, maxFunctionInstances int64
 var cpuDemand, qosMaxRespT float64
 var params []string
 var paramsFile string
@@ -78,7 +78,6 @@ func Init() {
 
 	rootCmd.AddCommand(invokeCmd)
 	invokeCmd.Flags().StringVarP(&funcName, "function", "f", "", "name of the function")
-	invokeCmd.Flags().Int64VarP(&istances, "istances", "i", 1, "number of istances of the function")
 	invokeCmd.Flags().Float64VarP(&qosMaxRespT, "resptime", "", -1.0, "Max. response time (optional)")
 	invokeCmd.Flags().StringVarP(&qosClass, "class", "c", "", "QoS class (optional)")
 	invokeCmd.Flags().StringSliceVarP(&params, "param", "p", nil, "Function parameter: <name>:<value>")
@@ -126,11 +125,6 @@ func invoke(cmd *cobra.Command, args []string) {
 		showHelpAndExit(cmd)
 	}
 
-	if istances < 1 {
-		fmt.Printf("Invalid number of istances.\n")
-		showHelpAndExit(cmd)
-	}
-
 	// Parse parameters
 	paramsMap := make(map[string]interface{})
 
@@ -170,7 +164,6 @@ func invoke(cmd *cobra.Command, args []string) {
 	// Prepare request
 	request := client.InvocationRequest{
 		Params:          paramsMap,
-		Istances:        istances,
 		QoSClass:        int64(api.DecodeServiceClass(qosClass)),
 		QoSMaxRespT:     qosMaxRespT,
 		CanDoOffloading: true,
