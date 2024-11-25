@@ -39,6 +39,10 @@ etcd_restart:
 	./scripts/start-etcd.sh
 node_start:
 	./bin/serverledge
+setup_offloading:
+	gnome-terminal -- bash -c "./bin/serverledge ./examples/local_offloading/confEdge.yaml; exec bash" 
+	gnome-terminal -- bash -c "./bin/serverledge ./examples/local_offloading/confCloud.yaml; exec bash" 
+
 
 test:
 	go test -v ./...

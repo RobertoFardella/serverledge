@@ -14,7 +14,7 @@ NUM_INSTANCES="${2:-1}"  # Default a 1 se non specificato
 # Avvia le istanze della funzione
 for i in $(seq 1 $NUM_INSTANCES); do
   echo "Invoking instance $i of $NUM_INSTANCES"
-  ./../../bin/serverledge-cli invoke -f "$FUNCTION_NAME" &
+  gnome-terminal -- bash -c "./../../bin/serverledge-cli invoke -f \"$FUNCTION_NAME\"; exec bash"
 done
 
 wait 
