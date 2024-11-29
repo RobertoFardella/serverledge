@@ -1,8 +1,6 @@
 package scheduling
 
 import (
-	"log"
-
 	"github.com/grussorusso/serverledge/internal/function"
 
 	"github.com/grussorusso/serverledge/internal/node"
@@ -28,9 +26,8 @@ func (p *EdgePolicy) OnArrival(r *scheduledRequest) {
 	} else {
 		containerID, err := node.AcquireRunningContainer(r.Fun)
 		if err == nil {
-			log.Printf("Using a warm container for: %v\n", r)
 			execLocally(r, containerID, true)
-		} else if handleColdStart(r) {
+		} else if handleUnavailableRunningContainer(r) {
 			return
 		}
 	}
