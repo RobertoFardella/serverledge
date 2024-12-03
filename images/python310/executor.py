@@ -1,37 +1,35 @@
-# Python 3 server example
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import time
+#!/usr/bin/env python3
 import os
 import sys
-import importlib
+import socket
 import json
+import importlib
+from io import StringIO
+from socketserver import ThreadingMixIn
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
-hostName = "0.0.0.0"
-serverPort = 8080
-
-#executed_modules = {}
+HOST = socket.gethostname()
+# Variabile globale per tracciare le directory aggiunte
 added_dirs = {}
 
-from io import StringIO
-import sys
+
+# Classe server concorrente
+class ThreadingSimpleServer(ThreadingMixIn, HTTPServer):
+    pass
 
 class CaptureOutput:
     def __enter__(self):
         self._stdout_output = ''
         self._stderr_output = ''
-
         self._stdout = sys.stdout
         sys.stdout = StringIO()
-
         self._stderr = sys.stderr
         sys.stderr = StringIO()
-
         return self
 
     def __exit__(self, *args):
         self._stdout_output = sys.stdout.getvalue()
         sys.stdout = self._stdout
-
         self._stderr_output = sys.stderr.getvalue()
         sys.stderr = self._stderr
 
@@ -70,7 +68,7 @@ class Executor(BaseHTTPRequestHandler):
             added_dirs[handler_dir] = True
 
         # Get module name
-        module,func_name = os.path.splitext(handler)
+        module, func_name = os.path.splitext(handler)
         func_name = func_name[1:] # strip initial dot
         loaded_mod = None
 
@@ -102,17 +100,18 @@ class Executor(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(bytes(json.dumps(response), "utf-8"))
 
+if __name__ == "__main__":
+    # Porta e directory configurabili tramite argomenti
+    PORT = int(sys.argv[1]) if sys.argv[1:] else 8080
+    if sys.argv[2:]:
+        os.chdir(sys.argv[2])
 
-
-if __name__ == "__main__":        
-    webServer = HTTPServer((hostName, serverPort), Executor)
-    print("Server started http://%s:%s" % (hostName, serverPort))
-
+    # Server concorrente
+    server = ThreadingSimpleServer(('0.0.0.0', PORT), Executor)
+    print(f"Serving HTTP traffic on {HOST} using port {PORT}")
     try:
-        webServer.serve_forever()
+        server.serve_forever()
     except KeyboardInterrupt:
-        pass
+        print("\nShutting down server per user request.")
 
-    webServer.server_close()
-    print("Server stopped.")
 
