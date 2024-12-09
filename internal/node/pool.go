@@ -66,7 +66,7 @@ func (fp *ContainerPool) getRunningContainer(maxIstances int64) (container.Conta
 }
 
 func (fp *ContainerPool) putRunningContainer(contID container.ContainerID) {
-	fp.running.PushBack(&containerRunning{
+	fp.running.PushFront(&containerRunning{
 		contID:      contID,
 		FuncCounter: 1,
 	})
@@ -215,7 +215,7 @@ func getImageForFunction(fun *function.Function) (string, error) {
 	return image, nil
 }
 
-func (fp *ContainerPool) getWarmContainer(maxIstances int64) (container.ContainerID, bool) {
+func (fp *ContainerPool) getWarmContainer() (container.ContainerID, bool) {
 	// TODO: picking most-recent / least-recent container might be better?
 	elem := fp.warm.Front()
 	if elem == nil {
@@ -235,12 +235,12 @@ func (fp *ContainerPool) getWarmContainer(maxIstances int64) (container.Containe
 // The function returns an error if either:
 // (i) the warm container does not exist
 // (ii) there are not enough resources to start the container
-func AcquireWarmContainer(f *function.Function, maxIstances int64) (container.ContainerID, error) {
+func AcquireWarmContainer(f *function.Function) (container.ContainerID, error) {
 	Resources.Lock()
 	defer Resources.Unlock()
 
 	fp := getFunctionPool(f)
-	contID, found := fp.getWarmContainer(maxIstances)
+	contID, found := fp.getWarmContainer()
 	if !found {
 		return "", NoWarmFoundErr
 	}
@@ -258,7 +258,7 @@ func AcquireWarmContainer(f *function.Function, maxIstances int64) (container.Co
 func WarmContainerWithAcquiredResources(f *function.Function) (container.ContainerID, error) {
 	fp := getFunctionPool(f)
 
-	contID, found := fp.getWarmContainer(f.MaxFunctionInstances)
+	contID, found := fp.getWarmContainer()
 	if !found {
 		return "", NoWarmFoundErr
 	}

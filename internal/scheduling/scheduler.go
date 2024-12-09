@@ -174,7 +174,7 @@ func handleUnavailableRunningContainer(r *scheduledRequest) (isSuccess bool) {
 	log.Printf("attempt to acquire warm container after there are no running container\n")
 
 	// If there are no running containers executing functions, take one from the warm pool (if any)
-	containerID, err := node.AcquireWarmContainer(r.Fun, r.Fun.MaxFunctionInstances)
+	containerID, err := node.AcquireWarmContainer(r.Fun)
 	if err == nil {
 		execLocally(r, containerID, true)
 		return true

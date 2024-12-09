@@ -89,7 +89,7 @@ func Init() {
 	createCmd.Flags().StringVarP(&funcName, "function", "f", "", "name of the function")
 	createCmd.Flags().StringVarP(&runtime, "runtime", "", "python38", "runtime for the function")
 	createCmd.Flags().StringVarP(&handler, "handler", "", "", "function handler (runtime specific)")
-	createCmd.Flags().Int64VarP(&maxFunctionInstances, "max_istances", "", 1, "Upper limit for the number of instances")
+	createCmd.Flags().Int64VarP(&maxFunctionInstances, "max_istances", "", 20, "Upper limit for the number of instances")
 	createCmd.Flags().Int64VarP(&memory, "memory", "", 128, "memory (in MB) for the function")
 	createCmd.Flags().Float64VarP(&cpuDemand, "cpu", "", 0.0, "estimated CPU demand for the function (1.0 = 1 core)")
 	createCmd.Flags().StringVarP(&src, "src", "", "", "source for the function (single file, directory or TAR archive) (not necessary for runtime==custom)")
