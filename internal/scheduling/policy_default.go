@@ -61,7 +61,7 @@ func (p *DefaultLocalPolicy) OnCompletion(_ *function.Function, _ *function.Exec
 					if err != nil {
 						dropRequest(req)
 					} else {
-						execLocally(req, newContainer, true)
+						execLocally(req, newContainer, false)
 					}
 				}()
 				return
