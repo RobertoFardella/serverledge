@@ -49,24 +49,22 @@ func (p *DefaultLocalPolicy) OnCompletion(_ *function.Function, _ *function.Exec
 	if errors.Is(err, node.NoRunningContErr) {
 		// If there are no running containers executing functions, take one from the warm pool
 		if node.AcquireResources(req.Fun.CPUDemand, req.Fun.MemoryMB, false) {
-			log.Printf("[%s] warm start from the queue (length=%d)\n", req, p.queue.Len())
 			p.queue.Dequeue()
 			warmContainer, err := node.WarmContainerWithAcquiredResources(req.Fun)
-			if err != nil { // warm container is not ready
-				// This avoids blocking the thread during the cold
-				// start, but also allows us to check for resource
-				// availability before dequeueing
-				go func() {
+			if err != nil { // cold start
+				go func(req *scheduledRequest) {
 					newContainer, err := node.NewContainerWithAcquiredResources(req.Fun)
 					if err != nil {
 						dropRequest(req)
 					} else {
+						log.Printf("[%s] cold start from the queue (length=%d)\n", req, p.queue.Len())
 						execLocally(req, newContainer, false)
 					}
-				}()
+				}(req)
 				return
 
 			} else { // warm container is ready
+				log.Printf("[%s] warm start from the queue (length=%d)\n", req, p.queue.Len())
 				execLocally(req, warmContainer, true)
 			}
 
@@ -91,7 +89,6 @@ func (p *DefaultLocalPolicy) OnArrival(r *scheduledRequest) {
 
 	if errors.Is(err, node.OutOfResourcesErr) {
 		// pass
-		log.Printf("not enough resources for function execution, the request will be enqueue if possible\n")
 	}
 
 	if errors.Is(err, node.NoRunningContErr) {

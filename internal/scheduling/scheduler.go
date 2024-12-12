@@ -92,7 +92,11 @@ func SubmitRequest(r *function.Request) (function.ExecutionReport, error) {
 
 	if schedDecision.action == DROP {
 		log.Printf("[%s] Dropping request", r)
-		return function.ExecutionReport{}, node.OutOfResourcesErr
+		return function.ExecutionReport{
+			Result:      "Dropped",
+			SchedAction: "DROP",
+		}, node.OutOfResourcesErr
+
 	} else if schedDecision.action == EXEC_REMOTE {
 		log.Printf("Offloading request")
 		return Offload(r, schedDecision.remoteHost)
