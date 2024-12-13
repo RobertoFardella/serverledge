@@ -83,7 +83,7 @@ func (p *DefaultLocalPolicy) OnArrival(r *scheduledRequest) {
 
 	containerID, err := node.AcquireRunningContainer(r.Fun)
 	if err == nil {
-		execLocally(r, containerID, false)
+		execLocally(r, containerID, true)
 		return
 	}
 
