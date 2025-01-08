@@ -139,12 +139,12 @@ func SubmitAsyncRequest(r *function.Request) {
 
 func handleColdStart(r *scheduledRequest) (isSuccess bool) {
 	newContainer, err := node.NewContainer(r.Fun)
-	if errors.Is(err, node.OutOfResourcesErr) {
+	if errors.Is(err, node.OutOfResourcesErr) { // if there are no resources
 		return false
-	} else if err != nil {
+	} else if err != nil { // other error
 		log.Printf("Cold start failed: %v\n", err)
 		return false
-	} else {
+	} else { // cold start
 		execLocally(r, newContainer, false)
 		return true
 	}
@@ -175,8 +175,6 @@ func handleCloudOffload(r *scheduledRequest) {
 
 func handleUnavailableRunningContainer(r *scheduledRequest) (isSuccess bool) {
 
-	log.Printf("attempt to acquire warm container after there are no running container\n")
-
 	// If there are no running containers executing functions, take one from the warm pool (if any)
 	containerID, err := node.AcquireWarmContainer(r.Fun)
 	if err == nil {
@@ -185,12 +183,11 @@ func handleUnavailableRunningContainer(r *scheduledRequest) (isSuccess bool) {
 	}
 
 	if errors.Is(err, node.OutOfResourcesErr) {
-		log.Printf("not enough resources for function execution into a warm container, the request will be enqueue if possible\n")
 		return false
 	}
 
 	if errors.Is(err, node.NoWarmFoundErr) {
-		return handleColdStart(r)
+		return handleColdStart(r) // cold start
 	}
 
 	// other error

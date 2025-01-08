@@ -39,41 +39,41 @@ func (p *DefaultLocalPolicy) OnCompletion(_ *function.Function, _ *function.Exec
 	req := p.queue.Front()
 
 	containerID, err := node.AcquireRunningContainer(req.Fun)
-	if err == nil {
+	if err == nil { // if there is a running container
 		p.queue.Dequeue()
-		log.Printf("[%s] running container start from the queue (length=%d)\n", req, p.queue.Len())
-		execLocally(req, containerID, true) // use a running container
+		execLocally(req, containerID, true)
 		return
 	}
 
-	if errors.Is(err, node.NoRunningContErr) {
-		// If there are no running containers executing functions, take one from the warm pool
-		if node.AcquireResources(req.Fun.CPUDemand, req.Fun.MemoryMB, false) {
+	containerWarmID, err := node.AcquireWarmContainer(req.Fun)
+	if err == nil {
+		p.queue.Dequeue()
+		log.Printf("[%s] Warm start from the queue (length=%d)\n", req, p.queue.Len())
+		execLocally(req, containerWarmID, true)
+		return
+	}
+
+	if errors.Is(err, node.NoWarmFoundErr) {
+		if node.AcquireResources(req.Fun.CPUDemand, req.Fun.MemoryMB, true) {
+			log.Printf("[%s] Cold start from the queue\n", req)
 			p.queue.Dequeue()
-			warmContainer, err := node.WarmContainerWithAcquiredResources(req.Fun)
-			if err != nil { // cold start
-				go func(req *scheduledRequest) {
-					newContainer, err := node.NewContainerWithAcquiredResources(req.Fun)
-					if err != nil {
-						dropRequest(req)
-					} else {
-						log.Printf("[%s] cold start from the queue (length=%d)\n", req, p.queue.Len())
-						execLocally(req, newContainer, false)
-					}
-				}(req)
-				return
 
-			} else { // warm container is ready
-				log.Printf("[%s] warm start from the queue (length=%d)\n", req, p.queue.Len())
-				execLocally(req, warmContainer, true)
-			}
-
+			// This avoids blocking the thread during the cold
+			// start, but also allows us to check for resource
+			// availability before dequeueing
+			go func(*function.Function) {
+				newContainer, err := node.NewContainerWithAcquiredResources(req.Fun)
+				if err != nil {
+					dropRequest(req)
+				} else {
+					execLocally(req, newContainer, false)
+				}
+			}(req.Fun)
+			return
 		}
 	} else if errors.Is(err, node.OutOfResourcesErr) {
-		// pass
 	} else {
-		// Other error
-		log.Printf("there is an error\n")
+		// other error
 		p.queue.Dequeue()
 		dropRequest(req)
 	}
@@ -82,16 +82,12 @@ func (p *DefaultLocalPolicy) OnCompletion(_ *function.Function, _ *function.Exec
 func (p *DefaultLocalPolicy) OnArrival(r *scheduledRequest) {
 
 	containerID, err := node.AcquireRunningContainer(r.Fun)
-	if err == nil {
+	if err == nil { // if there is a running container
 		execLocally(r, containerID, true)
 		return
 	}
 
-	if errors.Is(err, node.OutOfResourcesErr) {
-		// pass
-	}
-
-	if errors.Is(err, node.NoRunningContErr) {
+	if errors.Is(err, node.NoRunningContErr) { // if there are no running containers
 		if handleUnavailableRunningContainer(r) {
 			return
 		}
@@ -107,6 +103,6 @@ func (p *DefaultLocalPolicy) OnArrival(r *scheduledRequest) {
 		}
 	}
 
-	dropRequest(r) //if the Enqueue operation is not succeed, drop the request
+	dropRequest(r)
 
 }

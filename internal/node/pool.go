@@ -141,11 +141,6 @@ func AcquireRunningContainer(f *function.Function) (container.ContainerID, error
 		log.Printf("no running container is available for %s", f)
 		return "", NoRunningContErr
 	}
-	//check resources
-	if !acquireResources(f.CPUDemand, 0, false) {
-		log.Printf("Not enough CPU to start a container for %s", f)
-		return "", OutOfResourcesErr
-	}
 
 	//log.Printf("Using %s for %s. Now: %v", contID, f, Resources)
 	return contID, nil
