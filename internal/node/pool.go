@@ -169,14 +169,15 @@ func ReleaseResources(containerID container.ContainerID, f *function.Function) {
 			if container.FuncCounter <= 0 {
 				fp.running.Remove(elem)
 				fp.putwarmContainer(containerID, expTime)
+
+				releaseResources(f.CPUDemand, 0) // Rilascia risorse CPU per il container
+
 				break // Esci dal loop poiché il container è stato rimosso e rilasciato
 			}
 		}
 		elem = nextElem
 	}
 
-	// Rilascia risorse CPU per il container
-	releaseResources(f.CPUDemand, 0)
 }
 
 // NewContainer creates and starts a new container for the given function.
